@@ -1,12 +1,30 @@
 var rappad = {};
 
-rappad.Line = function(drawer, x, y, opt_id) {
-    this.id = opt_id || null;
-    this.path = drawer.paper.path([["M", x, y]]);
+rappad.Messenger = function(drawer) {
+    this._drawer = drawer;
+}
+rappad.Messenger.prototype.handleMessageIn = function(msg) {
+    var p = new rappad.Line(this._drawer, {});
+    p.setPath(msg);
+    this._drawer.setLineToNamespace(p, 'foreign');
+    return;
+}
+
+rappad.Messenger.prototype.handleMessageOut = function() {
+    return;
+}
+
+
+rappad.Line = function(drawer, opts) {
+    this.id = opts.id || null;
+    if (opts.x && opts.y) {
+        this.path = drawer.paper.path([["M", opts.x, opts.y]]);
+    } else {
+        this.path = drawer.paper.path();   
+    }
     this.path.mouseup(function () {
         drawer.tearDown();
     });
-    bla = this;
 }
 
 rappad.Line.prototype.updatePath = function(x, y) {
@@ -35,19 +53,27 @@ rappad.Drawer = function(divId, width, height, opts) {
         'stroke': 'white',
         'fill-opacity': 0,
         'stroke-opacity': 0});
-    this.localLines = [];
+    this.lines = {};
     var pad = this;
 
     // after the mouseup happens
+
     this.tearDown = function() {
         this.mouseIsDown = false;
-        this.localLines.push(this.activeLine);
+        this.setLineToNamespace(this.activeLine);
+        console.log('td called');
         return;
     }
 
     // after the mousedown happens
     this.setUp = function(x, y) {
-        this.activeLine = new rappad.Line(this, x, y);
+        this.activeLine = new rappad.Line(this, {x: x, y: y});
+    }
+
+    this.setLineToNamespace = function(line, ns) {
+        var ns = ns || 'local';
+        if (!this.lines[ns]) this.lines[ns] = [];
+        this.lines[ns].push(line);
     }
 
     // attach handlers for rect
@@ -74,5 +100,7 @@ rappad.Drawer = function(divId, width, height, opts) {
 }
 
 $(document).ready(function () {
-    p = new rappad.Drawer('canvas', 800, 800);
+    drawer = new rappad.Drawer('canvas', 800, 800);
+    messagehandler = new rappad.Messenger(drawer);
+    // messagehandler.handleMessageIn("M399,49L401,49L405,55L410,70L416,96L419,124L419,138L419,148L415,153L408,153L404,152")
 });
