@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <script src="/js/lib/jquery.min.js"></script>
+        <script src="/js/lib/raphael-min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src='/js/main.js'></script>
+        <script src='/js/aj.js'></script>
+    </head>
+    <body>
+            <div id='container' class='shadow'>
+                <div id='canvas' style='width: 600px;height:500px'></div>
+            </div>
+
+    </body>
+
+<script>
+  var conf = {id: '<%= pid %>'};
+  var socket = io.connect('http://localhost:1337');
+  socket.emit('registerPad', JSON.stringify({'pid': conf.id}));
+  socket.on('message', function (pl) {
+    console.log(JSON.parse(pl));
+  });
+</script>
+</html>
