@@ -31,6 +31,8 @@ var generateId = function() {
 var Pad = function(id) {
   this.id = id;
   this.clients = {};
+  this.lastActive = new Date().getTime();
+  this.paths = [];
 }
 
 Pad.prototype.sendToOthers = function(cid, method, path) {
@@ -40,6 +42,14 @@ Pad.prototype.sendToOthers = function(cid, method, path) {
     }
   }
 }
+
+Pad.prototype.isActive = function(timeout) {
+   var now = new Date().getTime();
+   if ((now-this.lastActive) > timeout) {
+     return false;
+   }
+   return true;
+};
 
 /* All current pads */
 var pads = {};
@@ -69,6 +79,8 @@ app.post("/p/:id?", function(req, res) {
   if (pid && method && path && cid) {
     var pad = pads[pid];
     pad.sendToOthers(cid, method, path);
+    pad.paths.push(path);
+    pad.lastActive = new Date().getTime();
     return res.send(JSON.stringify({'success': true}));
   }
 });
@@ -89,6 +101,9 @@ io.sockets.on('connection', function (client) {
     pid = data.pid;
     pads[pid].clients[cid] = client;
     client.emit('generateCid', JSON.stringify({'cid': cid}));
+    for (var i=0;i<pads[pid].paths.length; i ++) {
+      client.send(JSON.stringify({'method':'update', 'path':pads[pid].paths[i]}));
+    }
   });
 
   client.on('disconnect', function() {
@@ -98,3 +113,13 @@ io.sockets.on('connection', function (client) {
   });
 
 });
+
+var testPadActivityInterval = setInterval(function() {
+  util.log('testing pad activity');
+  for (var pid in pads) {
+    if (!pads[pid].isActive(config.padTimeoutTolerance)) {
+      util.log(pid + ' is not active, removing.');
+      delete pads[pid];
+    }
+  }
+}, config.testPadActivityInterval);
