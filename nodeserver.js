@@ -1,5 +1,4 @@
-/*sample
-*/
+/*Pad drawer*/
 
 var util = require("util");
 var express = require("express");
@@ -46,6 +45,12 @@ Pad.prototype.sendToOthers = function(cid, method, path) {
 var pads = {};
 
 // Handlers
+
+app.get("/:id?", function(req, res) {
+  var pid = req.params.id;
+  if (!pid) return res.redirect('/p/' + generateId());
+  return res.redirect('/p/' + pid);
+});
 
 app.get("/p/:id?", function(req, res) {
   var pid = req.params.id;
