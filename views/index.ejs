@@ -19,8 +19,26 @@
   var conf = {id: '<%= pid %>'};
   var socket = io.connect('http://localhost:1337');
   socket.emit('registerPad', JSON.stringify({'pid': conf.id}));
-  socket.on('message', function (pl) {
-    console.log(JSON.parse(pl));
+
+  socket.on('connect', function() {
+      conf.clientid = socket.socket.sessionid;
   });
+
+  socket.on('generateCid', function(data) {
+      conf.clientid = JSON.parse(data).cid;
+  });
+
+  socket.on('message', function (pl) {
+    messagehandler.handleMessageIn(JSON.parse(pl));
+  });
+
+  $(document).ready(function () {
+    var drawCb = function(line) {
+        messagehandler.handleMessageOut(conf.clientid, 'create', String(line.getPath()));
+    }
+    drawer = new rappad.Drawer('canvas', 800, 800, {drawCallback: drawCb});
+    messagehandler = new rappad.Messenger(drawer);
+    //messagehandler.handleMessageIn("M399,49L401,49L405,55L410,70L416,96L419,124L419,138L419,148L415,153L408,153L404,152")
+});
 </script>
 </html>

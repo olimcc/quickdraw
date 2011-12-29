@@ -1,23 +1,29 @@
 var rappad = {};
 rappad.utils = rappad.utils || {};
 
-
-
-
-
-
 rappad.Messenger = function(drawer) {
     this._drawer = drawer;
 }
 rappad.Messenger.prototype.handleMessageIn = function(msg) {
     var p = new rappad.Line(this._drawer, {});
-    p.setPath(msg);
+    p.setPath(msg.path);
     this._drawer.setLineToNamespace(p, 'foreign');
     return;
 }
 
-rappad.Messenger.prototype.handleMessageOut = function() {
-    return;
+rappad.Messenger.prototype.handleMessageOut = function(client, method, path) {
+      $.ajax({
+        dataType: 'text',
+        type: "POST",
+        data: {'method': method, 'path': path, 'client': client},
+        url: "/p/" + conf.id,
+        error: function (e) {
+          console.log(e)
+        },
+        success: function (r) {
+          console.log(r);
+        }
+    });
 }
 
 rappad.utils.getCoordsFromMouseEvent = function(event) {
@@ -60,6 +66,8 @@ rappad.Line.prototype.getPath = function() {
 
 rappad.Drawer = function(divId, width, height, opts) {
     this.paper = Raphael(divId, width, height);
+    this.opts = opts || {};
+    this.drawCallback = this.opts.drawCallback;
     this.mouseIsDown = false;
     this.activeLine = null;
     this.rect = this.paper.rect(0, 0, this.paper.width, this.paper.height);
@@ -76,6 +84,9 @@ rappad.Drawer = function(divId, width, height, opts) {
     this.tearDown = function() {
         this.mouseIsDown = false;
         this.setLineToNamespace(this.activeLine);
+        if (this.drawCallback) {
+            this.drawCallback(this.activeLine);
+        }
         return;
     }
 
@@ -114,9 +125,3 @@ rappad.Drawer = function(divId, width, height, opts) {
     });
 
 }
-
-$(document).ready(function () {
-    drawer = new rappad.Drawer('canvas', 800, 800);
-    messagehandler = new rappad.Messenger(drawer);
-    //messagehandler.handleMessageIn("M399,49L401,49L405,55L410,70L416,96L419,124L419,138L419,148L415,153L408,153L404,152")
-});
