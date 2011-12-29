@@ -38,8 +38,6 @@ Pad.prototype.sendToOthers = function(cid, method, path) {
   for (var id in this.clients) {
     if (id != cid) {
       this.clients[id].send(JSON.stringify({'method':method, 'path':path}));
-    } else {
-      console.log('bypassing current client: ' + cid);
     }
   }
 }
@@ -71,7 +69,7 @@ app.post("/p/:id?", function(req, res) {
 });
 
 // Kick things off
-app.listen(config.port, "localhost");
+app.listen(config.port);
 util.log("Starting app on port "+config.port);
 
 // Setting up socket

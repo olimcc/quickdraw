@@ -12,13 +12,13 @@ rappad.Messenger.prototype.handleMessageIn = function(msg) {
 }
 
 rappad.Messenger.prototype.handleMessageOut = function(client, method, path) {
-      $.ajax({
+    $.ajax({
         dataType: 'text',
         type: "POST",
         data: {'method': method, 'path': path, 'client': client},
         url: "/p/" + conf.id,
         error: function (e) {
-          console.log(e)
+          console.log(e);
         },
         success: function (r) {
           console.log(r);
