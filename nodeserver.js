@@ -106,6 +106,10 @@ io.sockets.on('connection', function (client) {
     }
   });
 
+  client.on('mobLog', function(data) {
+    util.log('mobile -- ' + data);
+  });
+
   client.on('disconnect', function() {
     if (pads[pid]) {
       delete pads[pid].clients[cid];

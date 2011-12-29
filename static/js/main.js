@@ -1,8 +1,9 @@
 var rappad = {};
 rappad.utils = rappad.utils || {};
 
-rappad.Messenger = function(drawer) {
+rappad.Messenger = function(drawer, pid) {
     this._drawer = drawer;
+    this._pid = pid;
 }
 rappad.Messenger.prototype.handleMessageIn = function(msg) {
     var p = new rappad.Line(this._drawer, {});
@@ -16,7 +17,7 @@ rappad.Messenger.prototype.handleMessageOut = function(client, method, path) {
         dataType: 'text',
         type: "POST",
         data: {'method': method, 'path': path, 'client': client},
-        url: "/p/" + conf.id,
+        url: "/p/" + this._pid,
         error: function (e) {
           console.log(e);
         },
@@ -126,6 +127,33 @@ rappad.Drawer = function(divId, width, height, opts) {
 
     // attach mouseup handlers to end line draw
     this.rect.mouseup(function () {
+        if (pad.mouseIsDown) {
+            pad.tearDown();
+        }
+    });
+
+    // attach handlers for rect
+    // when a mouse down happens
+    this.rect.touchstart(function (e) {
+        pad.mouseIsDown = true;
+        e = e.changedTouches[0];
+        socket.emit('mobLog', 'log');
+        co = rappad.utils.getCoordsFromMouseEvent(e, pad.divId);
+        pad.newLine(co[0], co[1]);
+    });
+
+    // when a mousemove happens
+    this.rect.touchmove(function (e) {
+        if (pad.mouseIsDown) {
+            e = e.changedTouches[0];
+            co = rappad.utils.getCoordsFromMouseEvent(e, pad.divId);
+            pad.activeLine.updatePath(co[0], co[1]);
+          }
+    });
+
+    // attach mouseup handlers to end line draw
+    this.rect.touchend(function () {
+        e = e.changedTouches[0];
         if (pad.mouseIsDown) {
             pad.tearDown();
         }

@@ -7,6 +7,7 @@
         <script src="/js/lib/raphael-min.js"></script>
         <script src="/socket.io/socket.io.js"></script>
         <script src='/js/main.js'></script>
+
     </head>
     <body>
       <div id='container'>
@@ -16,30 +17,27 @@
 
 <script>
 
-  var conf = {id: '<%= pid %>'};
-  var socket = io.connect();
-  socket.emit('registerPad', JSON.stringify({'pid': conf.id}));
-
-  socket.on('connect', function() {
-      conf.clientid = socket.socket.sessionid;
-  });
-
-  socket.on('generateCid', function(data) {
-      conf.clientid = JSON.parse(data).cid;
-  });
-
-  socket.on('message', function (pl) {
-    messagehandler.handleMessageIn(JSON.parse(pl));
-  });
-
   $(document).ready(function () {
+
+    var conf = {id: '<%= pid %>'};
+    var socket = io.connect();
+    socket.emit('registerPad', JSON.stringify({'pid': conf.id}));
+    socket.on('connect', function() {
+    });
+
+    socket.on('generateCid', function(data) {
+        conf.clientid = JSON.parse(data).cid;
+    });
+
+    socket.on('message', function (pl) {
+      messagehandler.handleMessageIn(JSON.parse(pl));
+    });
 
     var drawCb = function(line) {
         messagehandler.handleMessageOut(conf.clientid, 'create', String(line.getPath()));
     }
-
     drawer = new rappad.Drawer('canvas', '980px', '600px', {drawCallback: drawCb});
-    messagehandler = new rappad.Messenger(drawer);
+    messagehandler = new rappad.Messenger(drawer, conf.id);
 });
 </script>
 </html>
