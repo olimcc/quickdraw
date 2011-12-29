@@ -137,7 +137,6 @@ rappad.Drawer = function(divId, width, height, opts) {
     this.rect.touchstart(function (e) {
         pad.mouseIsDown = true;
         e = e.changedTouches[0];
-        socket.emit('mobLog', 'log');
         co = rappad.utils.getCoordsFromMouseEvent(e, pad.divId);
         pad.newLine(co[0], co[1]);
     });
