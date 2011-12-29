@@ -26,9 +26,15 @@ rappad.Messenger.prototype.handleMessageOut = function(client, method, path) {
     });
 }
 
-rappad.utils.getCoordsFromMouseEvent = function(event) {
-    var x = event.offsetX ? event.offsetX : event.clientX;
-    var y = event.offsetY ? event.offsetY : event.clientY;
+rappad.utils.getDivPosition = function(divId) {
+    var d = document.getElementById(divId);
+    return {x: d.offsetLeft, y: d.offsetTop};
+}
+
+rappad.utils.getCoordsFromMouseEvent = function(event, divId) {
+    var pos = rappad.utils.getDivPosition(divId);
+    var x = event.offsetX ? event.offsetX : event.clientX - pos.x;
+    var y = event.offsetY ? event.offsetY : event.clientY - pos.y;
     return [x, y];
 }
 
@@ -65,6 +71,7 @@ rappad.Line.prototype.getPath = function() {
 }
 
 rappad.Drawer = function(divId, width, height, opts) {
+    this.divId = divId;
     this.paper = Raphael(divId, width, height);
     this.opts = opts || {};
     this.drawCallback = this.opts.drawCallback;
@@ -105,14 +112,14 @@ rappad.Drawer = function(divId, width, height, opts) {
     // when a mouse down happens
     this.rect.mousedown(function (e) {
         pad.mouseIsDown = true;
-        co = rappad.utils.getCoordsFromMouseEvent(e);
+        co = rappad.utils.getCoordsFromMouseEvent(e, pad.divId);
         pad.newLine(co[0], co[1]);
     });
 
     // when a mousemove happens
     this.rect.mousemove(function (e) {
         if (pad.mouseIsDown) {
-            co = rappad.utils.getCoordsFromMouseEvent(e);
+            co = rappad.utils.getCoordsFromMouseEvent(e, pad.divId);
             pad.activeLine.updatePath(co[0], co[1]);
           }
     });
