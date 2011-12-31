@@ -1,18 +1,18 @@
-var rappad = {};
-rappad.utils = rappad.utils || {};
+var quickdraw = {};
+quickdraw.utils = quickdraw.utils || {};
 
-rappad.Messenger = function(drawer, pid) {
+quickdraw.Messenger = function(drawer, pid) {
     this._drawer = drawer;
     this._pid = pid;
 }
-rappad.Messenger.prototype.handleMessageIn = function(msg) {
-    var p = new rappad.Line(this._drawer, {});
+quickdraw.Messenger.prototype.handleMessageIn = function(msg) {
+    var p = new quickdraw.Line(this._drawer, {});
     p.setPath(msg.path);
     this._drawer.setLineToNamespace(p, 'foreign');
     return;
 }
 
-rappad.Messenger.prototype.handleMessageOut = function(client, method, path) {
+quickdraw.Messenger.prototype.handleMessageOut = function(client, method, path) {
     $.ajax({
         dataType: 'text',
         type: "POST",
@@ -27,19 +27,19 @@ rappad.Messenger.prototype.handleMessageOut = function(client, method, path) {
     });
 }
 
-rappad.utils.getDivPosition = function(divId) {
+quickdraw.utils.getDivPosition = function(divId) {
     var d = document.getElementById(divId);
     return {x: d.offsetLeft, y: d.offsetTop};
 }
 
-rappad.utils.getCoordsFromMouseEvent = function(event, divId) {
-    var pos = rappad.utils.getDivPosition(divId);
+quickdraw.utils.getCoordsFromMouseEvent = function(event, divId) {
+    var pos = quickdraw.utils.getDivPosition(divId);
     var x = event.offsetX ? event.offsetX : event.clientX - pos.x;
     var y = event.offsetY ? event.offsetY : event.clientY - pos.y;
     return [x, y];
 }
 
-rappad.Line = function(drawer, opts) {
+quickdraw.Line = function(drawer, opts) {
     this.id = opts.id || null;
     if (opts.x && opts.y) {
         this.path = drawer.paper.path([["M", opts.x, opts.y]]);
@@ -51,7 +51,7 @@ rappad.Line = function(drawer, opts) {
     });
 }
 
-rappad.Line.prototype.updatePath = function(x, y) {
+quickdraw.Line.prototype.updatePath = function(x, y) {
     var arr = this.path.attrs.path;
     if (typeof(arr) == 'string') {
         arr = Raphael.parsePathString(arr);
@@ -62,16 +62,16 @@ rappad.Line.prototype.updatePath = function(x, y) {
     return;
 }
 
-rappad.Line.prototype.setPath = function(pathStr) {
+quickdraw.Line.prototype.setPath = function(pathStr) {
     this.path.attr({path: pathStr});
     return;
 }
 
-rappad.Line.prototype.getPath = function() {
+quickdraw.Line.prototype.getPath = function() {
     return this.path.attrs.path;
 }
 
-rappad.Drawer = function(divId, width, height, opts) {
+quickdraw.Drawer = function(divId, width, height, opts) {
     this.divId = divId;
     this.paper = Raphael(divId, width, height);
     this.opts = opts || {};
@@ -100,7 +100,7 @@ rappad.Drawer = function(divId, width, height, opts) {
 
     // after the mousedown happens
     this.newLine = function(x, y) {
-        this.activeLine = new rappad.Line(this, {x: x, y: y});
+        this.activeLine = new quickdraw.Line(this, {x: x, y: y});
     }
 
     this.setLineToNamespace = function(line, ns) {
@@ -113,14 +113,14 @@ rappad.Drawer = function(divId, width, height, opts) {
     // when a mouse down happens
     this.rect.mousedown(function (e) {
         pad.mouseIsDown = true;
-        co = rappad.utils.getCoordsFromMouseEvent(e, pad.divId);
+        co = quickdraw.utils.getCoordsFromMouseEvent(e, pad.divId);
         pad.newLine(co[0], co[1]);
     });
 
     // when a mousemove happens
     this.rect.mousemove(function (e) {
         if (pad.mouseIsDown) {
-            co = rappad.utils.getCoordsFromMouseEvent(e, pad.divId);
+            co = quickdraw.utils.getCoordsFromMouseEvent(e, pad.divId);
             pad.activeLine.updatePath(co[0], co[1]);
           }
     });
@@ -137,7 +137,7 @@ rappad.Drawer = function(divId, width, height, opts) {
     this.rect.touchstart(function (e) {
         pad.mouseIsDown = true;
         e = e.changedTouches[0];
-        co = rappad.utils.getCoordsFromMouseEvent(e, pad.divId);
+        co = quickdraw.utils.getCoordsFromMouseEvent(e, pad.divId);
         pad.newLine(co[0], co[1]);
     });
 
@@ -145,7 +145,7 @@ rappad.Drawer = function(divId, width, height, opts) {
     this.rect.touchmove(function (e) {
         if (pad.mouseIsDown) {
             e = e.changedTouches[0];
-            co = rappad.utils.getCoordsFromMouseEvent(e, pad.divId);
+            co = quickdraw.utils.getCoordsFromMouseEvent(e, pad.divId);
             pad.activeLine.updatePath(co[0], co[1]);
           }
     });
