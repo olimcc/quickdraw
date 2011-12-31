@@ -18,24 +18,32 @@
 <script>
 
   $(document).ready(function () {
+    // pad config
+    var conf = {};
+    conf.id = '<%= pid %>';
 
-    var conf = {id: '<%= pid %>'};
+    // socket interaction
     var socket = io.connect();
-    socket.emit('registerPad', JSON.stringify({'pid': conf.id}));
-    socket.on('connect', function() {
-    });
 
+    // let the server know what pad we're editing
+    socket.emit('registerPad', JSON.stringify({'pid': conf.id}));
+
+    // listen for a client id from the server, and store it to conf.
     socket.on('generateCid', function(data) {
         conf.clientid = JSON.parse(data).cid;
     });
 
+    // listen for an incoming message (an update to our pad) from the server
     socket.on('message', function (pl) {
       messagehandler.handleMessageIn(JSON.parse(pl));
     });
 
+    // triggered when a line is drawn on our pad. handles triggering an
+    // message to the server which will send the line to other users.
     var drawCb = function(line) {
         messagehandler.handleMessageOut(conf.clientid, 'create', String(line.getPath()));
     }
+    // set up
     drawer = new quickdraw.Drawer('canvas', '980px', '600px', {drawCallback: drawCb});
     messagehandler = new quickdraw.Messenger(drawer, conf.id);
 });
