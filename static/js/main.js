@@ -43,6 +43,7 @@ quickdraw.Messenger = function(drawer, pid) {
 quickdraw.Messenger.prototype.handleMessageIn = function(msg) {
     var p = new quickdraw.Line(this._drawer, {});
     p.setBasePath(msg.path);
+    this._drawer.activeLine = p;
     this._drawer.setLineToNamespace(p, 'foreign');
     return;
 }
@@ -154,7 +155,7 @@ quickdraw.Line.prototype.getPath = function(transformed) {
  * @param {Number} interval to select points from path at.
  */
 quickdraw.Line.prototype.curvify = function(interval) {
-    var out = [], p = this.basePath;
+    var out = [], p = this.getPath();
     for (var i=0, l=p.length;i<l-1;i+=interval) {
         out.push(p[i].slice(1, 3));
     }
