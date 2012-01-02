@@ -152,10 +152,14 @@ quickdraw.Line.prototype.getPath = function(transformed) {
  * This method reads from this.basePath and writes to this.transformedPath,
  * the original path (this.basePath) is never overwritten.
  *
- * @param {Number} interval to select points from path at.
+ * @param {Float} coverage value between 0-1, indicating what percentage
+ *                of the path entries should be considered.
+ *                0 -> A straight line between the first and last point
+ *                1 -> Every point on the path included.
  */
-quickdraw.Line.prototype.curvify = function(interval) {
+quickdraw.Line.prototype.curvify = function(coverage) {
     var out = [], p = this.getPath();
+    var interval = Math.floor(p.length/(p.length*coverage));
     for (var i=0, l=p.length;i<l-1;i+=interval) {
         out.push(p[i].slice(1, 3));
     }
