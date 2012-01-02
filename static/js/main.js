@@ -1,11 +1,24 @@
 var quickdraw = {};
 quickdraw.utils = quickdraw.utils || {};
 
+
+/**
+ * Get the x,y offsets of a div.
+ *
+ * @param {String} divId
+ */
 quickdraw.utils.getDivPosition = function(divId) {
     var d = document.getElementById(divId);
     return {x: d.offsetLeft, y: d.offsetTop};
 }
 
+/**
+ * Get x,y coordinates for a mouse event, relative to the container div id
+ * Makes allowances for Chrome/FF differences.
+ *
+ * @param {MouseEvent} event
+ * @param {String} divId container div
+ */
 quickdraw.utils.getCoordsFromMouseEvent = function(event, divId) {
     var pos = quickdraw.utils.getDivPosition(divId);
     var x = event.offsetX ? event.offsetX : event.clientX - pos.x;
@@ -15,7 +28,7 @@ quickdraw.utils.getCoordsFromMouseEvent = function(event, divId) {
 
 /**
  * Handle incoming and outgoing messages to a pad
- * @param {quickpad.Drawer} drawer instance
+ * @param {quickdraw.Drawer} drawer instance
  * @param {String} pid Pad Id
  */
 quickdraw.Messenger = function(drawer, pid) {
@@ -29,7 +42,7 @@ quickdraw.Messenger = function(drawer, pid) {
  */
 quickdraw.Messenger.prototype.handleMessageIn = function(msg) {
     var p = new quickdraw.Line(this._drawer, {});
-    p.setPath(msg.path);
+    p.setBasePath(msg.path);
     this._drawer.setLineToNamespace(p, 'foreign');
     return;
 }
@@ -67,8 +80,11 @@ quickdraw.Messenger.prototype.handleMessageOut = function(client, method, path) 
  */
 quickdraw.Line = function(drawer, opts) {
     this.id = opts.id || null;
+    this.basePath = []; // the rawest representation of our path co-ords
+    this.transformedPath = []; // path with changes applied, ex: this.curvify()
     if (opts.x && opts.y) {
-        this.path = drawer.paper.path([["M", opts.x, opts.y]]);
+        this.basePath = [["M", opts.x, opts.y]];
+        this.path = drawer.paper.path(this.basePath);
     } else {
         this.path = drawer.paper.path();
     }
@@ -78,35 +94,74 @@ quickdraw.Line = function(drawer, opts) {
 }
 
 /**
- * Append values to the path.
+ * Append co-ordinates to the path.
+ *
  * @param {Number} x coord
  * @param {Number} y coord
  */
 quickdraw.Line.prototype.updatePath = function(x, y) {
-    var arr = this.path.attrs.path;
-    if (typeof(arr) == 'string') {
-        arr = Raphael.parsePathString(arr);
-        if (arr == null) arr = [];
+    if (typeof(this.basePath) == 'string') {
+        this.basePath = Raphael.parsePathString(this.basePath);
+        if (this.basePath == null) this.basePath = [];
     }
-    arr.push(["L", x, y]);
-    this.path.attr({path: arr});
-    return;
+    this.basePath.push(["L", x, y]);
+    this.setPath(this.basePath);
 }
 
 /**
- * Completely update the path
+ * Visually set the path (but do not change the underlying path).
+ * For example, curvify() will call setPath, but will not update basePath.
+ *
  * @param {String} Complete path string
  */
-quickdraw.Line.prototype.setPath = function(pathStr) {
-    this.path.attr({path: pathStr});
-    return;
+quickdraw.Line.prototype.setPath = function(path) {
+    this.path.attr({path: path});
+}
+
+/**
+ * Hard set the underlying path.
+ *
+ * @param {String} Complete path string
+ */
+quickdraw.Line.prototype.setBasePath = function(path) {
+    this.basePath = path;
+    this.setPath(this.basePath);
 }
 
 /**
  * Get a String representation of the path.
  */
-quickdraw.Line.prototype.getPath = function() {
-    return this.path.attrs.path;
+quickdraw.Line.prototype.getPath = function(transformed) {
+    var p = (transformed) ? this.transformedPath : this.basePath;
+    return Raphael.parsePathString(p);
+}
+
+/**
+ * Reduce the jaggedness of a line/smooth a line.
+ *
+ * Uses catmullrom2bezier.js to achieve smoothing.
+ * Since paths rendered with drawer capture a lage number of points
+ *   (i.e.: many x,y co-ordinates build a path), this method takes
+ *   points from the path at a specified interval (ex: every 5th path)
+ *   and uses these as the basis for the smooth function as defined in
+ *   catmullrom2bezier.js.
+ *   It also ensures that the first and last points of the original path
+ *   are maintained.
+ *
+ * This method reads from this.basePath and writes to this.transformedPath,
+ * the original path (this.basePath) is never overwritten.
+ *
+ * @param {Number} interval to select points from path at.
+ */
+quickdraw.Line.prototype.curvify = function(interval) {
+    var out = [], p = this.basePath;
+    for (var i=0, l=p.length;i<l-1;i+=interval) {
+        out.push(p[i].slice(1, 3));
+    }
+    out.push(p[p.length-1].slice(1, 3));
+    var curvyPath = 'M' + out[0] + ' R' + out.slice(1, out.length).join(' ');
+    this.transformedPath = parsePathString(curvyPath);
+    this.setPath(this.transformedPath);
 }
 
 /**
