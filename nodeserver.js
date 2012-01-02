@@ -55,7 +55,6 @@ Pad.prototype.isActive = function(timeout) {
 var pads = {};
 
 // Handlers
-
 app.get("/:id?", function(req, res) {
   var pid = req.params.id;
   if (!pid) return res.redirect('/p/' + generateId());
@@ -92,10 +91,12 @@ util.log("Starting app on port "+config.port);
 // Setting up socket
 var io = io.listen(app);
 
+// listen for a connection
 io.sockets.on('connection', function (client) {
   var cid = generateId();
   var pid = null;
 
+  // listen for register pad
   client.on('registerPad', function (data) {
     var data = JSON.parse(data);
     pid = data.pid;
@@ -106,10 +107,7 @@ io.sockets.on('connection', function (client) {
     }
   });
 
-  client.on('mobLog', function(data) {
-    util.log('mobile -- ' + data);
-  });
-
+  // listen for disconnect
   client.on('disconnect', function() {
     if (pads[pid]) {
       delete pads[pid].clients[cid];
