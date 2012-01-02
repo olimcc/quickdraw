@@ -160,8 +160,12 @@ quickdraw.Line.prototype.curvify = function(interval) {
         out.push(p[i].slice(1, 3));
     }
     out.push(p[p.length-1].slice(1, 3));
-    var curvyPath = 'M' + out[0] + ' R' + out.slice(1, out.length).join(' ');
-    this.transformedPath = parsePathString(curvyPath);
+    if (out.length > 2) {
+        var curvyPath = 'M' + out[0] + ' R' + out.slice(1, out.length).join(' ');
+        this.transformedPath = parsePathString(curvyPath);
+    } else {
+        this.transformedPath = 'M' + out[0] + 'L' + out[1];
+    }
     this.setPath(this.transformedPath);
 }
 
