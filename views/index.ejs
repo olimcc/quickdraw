@@ -24,7 +24,7 @@
     conf.id = '<%= pid %>';
 
     // socket interaction
-    var socket = io.connect();
+    var socket = io.connect('http://' + location.hostname + ':3000');
 
     // let the server know what pad we're editing
     socket.emit('registerPad', JSON.stringify({'pid': conf.id}));
