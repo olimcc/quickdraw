@@ -1,0 +1,11 @@
+{
+  "name": "quickdraw",
+  "description": "JS Drawing app",
+  "version": "0.0.1",
+  "dependencies": {
+    "express": "2.5.10",
+    "socket.io": "0.9.5",
+    "util": "*",
+    "ejs": "*"
+  }
+}
