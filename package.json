@@ -5,7 +5,7 @@
   "dependencies": {
     "express": "2.5.10",
     "socket.io": "0.9.5",
-    "util": "*",
-    "ejs": "*"
+    "util": "0.10.3",
+    "ejs": "2.3.4"
   }
 }
