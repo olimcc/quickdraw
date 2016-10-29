@@ -1,0 +1,15 @@
+sudo: required #is required to use docker service in travis
+
+language: python
+
+services:
+  - docker
+
+install:
+  - echo "install nothing!" # put your normal pre-testing installs here
+
+script:
+  - echo "no tests!"
+
+after_success:
+  - ./deploy-travis.sh
